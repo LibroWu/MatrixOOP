@@ -67,6 +67,7 @@ namespace sjtu {
         }
 
         Matrix &operator=(const Matrix &o) {
+            if (this==&o) return *this;
             delete[] Core;
             true_len=len = o.len;
             size_Matrix = o.size_Matrix;
@@ -77,6 +78,7 @@ namespace sjtu {
 
         template<class U>
         Matrix &operator=(const Matrix<U> &o) {
+            if (this==&o) return *this;
             delete [] Core;
             true_len=len=o.len;
             size_Matrix = o.size_Matrix;
@@ -93,6 +95,7 @@ namespace sjtu {
         }
 
         Matrix &operator=(Matrix &&o) noexcept {
+            if (this==&o) return *this;
             Core = o.Core;
             size_Matrix = o.size_Matrix;
             true_len=len = o.len;
