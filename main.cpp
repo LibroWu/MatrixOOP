@@ -12,6 +12,7 @@ void print(Matrix<T> a){
         for (int j=0;j<size_.second;++j) std::cout<<a(i,j)<<' ';
         std::cout<<'\n';
     }
+    std::cout<<'\n';
 }
 
 int main() {
@@ -34,6 +35,10 @@ int main() {
     Matrix<int> a={{1,2,3,4},{5,6,7,8},{9,10,11,12}};
     print(a*3);
     print(a.tran());
+    if (a==a) print(a-a);
+    a.resize(6,6,3);
+    print(a);
+    a.resize(4,4,1);
     print(a);
 #endif
     return 0;

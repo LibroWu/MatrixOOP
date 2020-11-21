@@ -19,6 +19,21 @@ namespace sjtu {
         T *Core = nullptr;
         size_t len = 0,true_len=0;
     public:
+        template<class T1,class U>
+        friend auto operator*(const Matrix<T1> &mat, const U &x);
+
+        template<class T1,class U>
+        friend auto operator*(const U &x, const Matrix<T1> &mat);
+
+        template<class U, class V>
+        friend auto operator*(const Matrix<U> &a, const Matrix<V> &b);
+
+        template<class U, class V>
+        friend auto operator+(const Matrix<U> &a, const Matrix<V> &b);
+
+        template<class U, class V>
+        friend auto operator-(const Matrix<U> &a, const Matrix<V> &b);
+
         Matrix() = default;
 
         Matrix(size_t n, size_t m, T _init = T()) {
@@ -94,14 +109,11 @@ namespace sjtu {
             size_Matrix.second=(*std::begin(il)).size();
             true_len=len=size_Matrix.first*size_Matrix.second;
             Core=new T [len];
-            int i=0;
+            int i=-1;
             for (auto it_i=std::begin(il);it_i!=std::end(il);++it_i){
-                int j=0;
                 for (auto it_j=std::begin(*it_i);it_j!=std::end(*it_i);++it_j){
-                    Core[i*size_Matrix.second+j]=*it_j;
-                    ++j;
+                    Core[++i]=*it_j;
                 }
-                ++i;
             }
         }
 
@@ -115,10 +127,40 @@ namespace sjtu {
         }
 
         void resize(size_t _n, size_t _m, T _init = T()) {
+            if (_n*_m==len){
+                size_Matrix={_n,_m};
+            }else {
+                T* tmp=new T [_n*_m];
+                int cnt=-1;
+                for (int i=0;i<_n && i<size_Matrix.first;++i)
+                    for (int j=0;j<_m && j<size_Matrix.second;++j)
+                            tmp[++cnt]=Core[i*size_Matrix.second+j];
+                for (int i=cnt+1;i<_n*_m;++i) tmp[i]=_init;
+                T* _tmp=Core;
+                Core=tmp;
+                delete [] _tmp;
+                size_Matrix={_n,_m};
+                true_len=len=_n*_m;
+            }
         }
 
         void resize(std::pair<size_t, size_t> sz, T _init = T()) {
-
+            std::size_t _n=sz.first,_m=sz.second;
+            if (_n*_m==len){
+                size_Matrix={_n,_m};
+            }else {
+                T* tmp=new T [_n*_m];
+                int cnt=-1;
+                for (int i=0;i<_n && i<size_Matrix.first;++i)
+                    for (int j=0;j<_m && j<size_Matrix.second;++j)
+                        tmp[++cnt]=Core[i*size_Matrix.second+j];
+                for (int i=cnt+1;i<_n*_m;++i) tmp[i]=_init;
+                T* _tmp=Core;
+                Core=tmp;
+                delete [] _tmp;
+                size_Matrix={_n,_m};
+                true_len=len=_n*_m;
+            }
         }
 
         std::pair<size_t, size_t> size() const {
@@ -307,52 +349,52 @@ namespace sjtu {
 namespace sjtu {
     template<class T, class U>
     auto operator*(const Matrix<T> &mat, const U &x) {
-        std::pair<size_t,size_t> size_=mat.size();
-        Matrix<decltype(mat(0,0)*x)> res(size_);
+        std::pair<size_t,size_t> size_=mat.size_Matrix;
+        Matrix<decltype(mat.Core[0]*x)> res(size_);
         for (int i=0;i<size_.first;++i)
             for (int j=0;j<size_.second;++j)
-                res(i,j)=mat(i,j)*x;
+                res.Core[i*size_.second+j]=mat.Core[i*size_.second+j]*x;
         return res;
     }
 
     template<class T, class U>
     auto operator*(const U &x, const Matrix<T> &mat) {
-        std::pair<size_t,size_t> size_=mat.size();
-        Matrix<decltype(mat(0,0)*x)> res(size_);
+        std::pair<size_t,size_t> size_=mat.size_Matrix;
+        Matrix<decltype(mat.Core[0]*x)> res(size_);
         for (int i=0;i<size_.first;++i)
             for (int j=0;j<size_.second;++j)
-                res(i,j)=mat(i,j)*x;
+                res.Core[i*size_.second+j]=mat.Core[i*size_.second+j]*x;
         return res;
     }
 
     template<class U, class V>
     auto operator*(const Matrix<U> &a, const Matrix<V> &b) {
-        std::pair<size_t,size_t> size_={a.size().first,b.size().second};
-        Matrix<decltype(a(0,0)*b(0,0))> res(size_,0);
-        for (int i=0;i<a.size().first;++i)
-            for (int j=0;j<b.size().second;++j)
-                for (int k=0;k<a.size().second;++k)
-                    res(i,j)+=a(i,k)*b(k,j);
+        std::pair<size_t,size_t> size_={a.size_Matrix.first,b.size_Matrix.second};
+        Matrix<decltype(a.Core[0]*b.Core[0])> res(size_,0);
+        for (int i=0;i<a.size_Matrix.first;++i)
+            for (int j=0;j<b.size_Matrix.second;++j)
+                for (int k=0;k<a.size_Matrix.second;++k)
+                    res.Core[i*size_.second+j]+=a.Core[i*a.size_Matrix.second+k]*b.Core[k*b.size_Matrix.second+j];
         return res;
     }
 
     template<class U, class V>
     auto operator+(const Matrix<U> &a, const Matrix<V> &b) {
-        std::pair<size_t,size_t> size_={a.size().first,a.size().second};
-        Matrix<decltype(a(0,0)+b(0,0))> res(size_,0);
-        for (int i=0;i<a.size().first;++i)
-            for (int j=0;j<a.size().second;++j)
-                    res(i,j)=a(i,j)+b(i,j);
+        std::pair<size_t,size_t> size_={a.size_Matrix.first,a.size_Matrix.second};
+        Matrix<decltype(a.Core[0]+b.Core[0])> res(size_,0);
+        for (int i=0;i<a.size_Matrix.first;++i)
+            for (int j=0;j<a.size_Matrix.second;++j)
+                    res.Core[i*size_.second+j]=a.Core[i*size_.second+j]+b.Core[i*size_.second+j];
         return res;
     }
 
     template<class U, class V>
     auto operator-(const Matrix<U> &a, const Matrix<V> &b) {
-        std::pair<size_t,size_t> size_={a.size().first,a.size().second};
-        Matrix<decltype(a(0,0)-b(0,0))> res(size_,0);
-        for (int i=0;i<a.size().first;++i)
-            for (int j=0;j<a.size().second;++j)
-                res(i,j)=a(i,j)-b(i,j);
+        std::pair<size_t,size_t> size_={a.size_Matrix.first,a.size_Matrix.second};
+        Matrix<decltype(a.Core[0]-b.Core[0])> res(size_,0);
+        for (int i=0;i<a.size_Matrix.first;++i)
+            for (int j=0;j<a.size_Matrix.second;++j)
+                res.Core[i*size_.second+j]=a.Core[i*size_.second+j]-b.Core[i*size_.second+j];
         return res;
     }
 }
