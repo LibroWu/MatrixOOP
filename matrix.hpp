@@ -90,7 +90,19 @@ namespace sjtu {
         }
 
         Matrix(std::initializer_list<std::initializer_list<T>> il) {
-
+            size_Matrix.first=il.size();
+            size_Matrix.second=(*std::begin(il)).size();
+            true_len=len=size_Matrix.first*size_Matrix.second;
+            Core=new T [len];
+            int i=0;
+            for (auto it_i=std::begin(il);it_i!=std::end(il);++it_i){
+                int j=0;
+                for (auto it_j=std::begin(*it_i);it_j!=std::end(*it_i);++it_j){
+                    Core[i*size_Matrix.second+j]=*it_j;
+                    ++j;
+                }
+                ++i;
+            }
         }
 
     public:
