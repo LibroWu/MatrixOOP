@@ -17,28 +17,28 @@ namespace sjtu {
         const std::pair<size_t, std::size_t> init_size={0,0};
         std::pair<size_t, std::size_t> size_Matrix=init_size;
         T *Core = nullptr;
-        size_t len = 0;
+        size_t len = 0,true_len=0;
     public:
         Matrix() = default;
 
         Matrix(size_t n, size_t m, T _init = T()) {
             size_Matrix.first = n;
             size_Matrix.second = m;
-            len = n * m;
+            true_len=len = n * m;
             Core = new T[len];
             for (int i = 0; i < len; ++i) Core[i] = _init;
         }
 
         explicit Matrix(std::pair<size_t, size_t> sz, T _init = T()) {
             size_Matrix = sz;
-            len = sz.first * sz.second;
+            true_len=len = sz.first * sz.second;
             Core = new T[len];
             for (int i = 0; i < len; ++i) Core[i] = _init;
         }
 
         Matrix(const Matrix &o) {
             size_Matrix = o.size_Matrix;
-            len = o.len;
+            true_len=len = o.len;
             Core = new T[len];
             for (int i = 0; i < len; ++i) Core[i] = o.Core[i];
         }
@@ -46,14 +46,14 @@ namespace sjtu {
         template<class U>
         Matrix(const Matrix<U> &o) {
             size_Matrix = o.size_Matrix;
-            len = o.len;
+            true_len=len = o.len;
             Core = new T[len];
             for (int i = 0; i < len; ++i) Core[i] =static_cast<T>(o.Core[i]);
         }
 
         Matrix &operator=(const Matrix &o) {
             delete[] Core;
-            len = o.len;
+            true_len=len = o.len;
             size_Matrix = o.size_Matrix;
             Core = new T[len];
             for (int i = 0; i < len; ++i) Core[i] = o.Core[i];
@@ -63,7 +63,7 @@ namespace sjtu {
         template<class U>
         Matrix &operator=(const Matrix<U> &o) {
             delete [] Core;
-            len=o.len;
+            true_len=len=o.len;
             size_Matrix = o.size_Matrix;
             Core=new T[len];
             for (int i=0;i<len;++i) Core[i]=static_cast<T>(o.Core[i]);
@@ -73,14 +73,14 @@ namespace sjtu {
         Matrix(Matrix &&o) noexcept {
             Core = o.Core;
             size_Matrix = o.size_Matrix;
-            len = o.len;
+            true_len=len = o.len;
             o.Core = nullptr;
         }
 
         Matrix &operator=(Matrix &&o) noexcept {
             Core = o.Core;
             size_Matrix = o.size_Matrix;
-            len = o.len;
+            true_len=len = o.len;
             o.Core = nullptr;
             return *this;
         }
@@ -103,7 +103,6 @@ namespace sjtu {
         }
 
         void resize(size_t _n, size_t _m, T _init = T()) {
-
         }
 
         void resize(std::pair<size_t, size_t> sz, T _init = T()) {
@@ -117,7 +116,7 @@ namespace sjtu {
         void clear() {
             delete[] Core;
             Core = nullptr;
-            len = 0;
+            true_len=len = 0;
             size_Matrix=init_size;
         }
 
@@ -133,7 +132,7 @@ namespace sjtu {
         Matrix<T> row(size_t i) const {
             Matrix<T> res;
             res.size_Matrix={1,size_Matrix.second};
-            res.len=size_Matrix.second;
+            res.true_len=res.len=size_Matrix.second;
             res.Core=new T [res.len];
             for (int j=0;j<res.len;++j) res.Core[j]=i*size_Matrix.second+j;
             return res;
@@ -142,7 +141,7 @@ namespace sjtu {
         Matrix<T> column(size_t i) const {
             Matrix<T> res;
             res.size_Matrix={size_Matrix.first,1};
-            res.len=size_Matrix.first;
+            res.true_len=res.len=size_Matrix.first;
             res.Core=new T [res.len];
             for (int j=0;j<res.len;++j) res.Core[j]=j*size_Matrix.second+i;
             return res;
@@ -154,7 +153,7 @@ namespace sjtu {
         bool operator==(const Matrix<U> &o) const {
             if (size_Matrix!=o.size_Matrix) return 0;
             for (int i=0;i<len;++i)
-                if (Core[i]!=static_cast<T>(o.Core[i])) return 0;
+                if (Core[i]!=o.Core[i]) return 0;
             return 1;
         }
 
@@ -162,13 +161,17 @@ namespace sjtu {
         bool operator!=(const Matrix<U> &o) const {
             if (size_Matrix!=o.size_Matrix) return 1;
             for (int i=0;i<len;++i)
-                if (Core[i]!=static_cast<T>(o.Core[i])) return 1;
+                if (Core[i]!=o.Core[i]) return 1;
             return 0;
         }
 
         Matrix operator-() const {
-            for (int i=0;i<len;++i) Core[i]=-Core[i];
-            return *this;
+            Matrix<T> res;
+            res.size_Matrix=size_Matrix;
+            res.true_len=res.len=len;
+            res.Core=new T [len];
+            for (int i=0;i<len;++i) res.Core[i]=-Core[i];
+            return res;
         }
 
         template<class U>
@@ -192,7 +195,7 @@ namespace sjtu {
         Matrix tran() const {
             Matrix<T> res;
             res.size_Matrix={size_Matrix.second,size_Matrix.first};
-            res.len=len;
+            res.true_len=res.len=len;
             res.Core=new T [len];
             for (int i=0;i<size_Matrix.second;++i)
                 for (int j=0;j<size_Matrix.first;++j)

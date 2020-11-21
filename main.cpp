@@ -11,6 +11,7 @@ int main() {
     for (int i=0;i<m;++i)
         for (int j=0;j<k;++j) std::cin>>b(i,j);
     Matrix<int> c=a*b;
+    c=-c;
     for (int i=0;i<n;++i) {
         for (int j = 0; j < k; ++j) std::cout << c(i, j) << ' ';
         std::cout<<'\n';
