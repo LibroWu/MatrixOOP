@@ -60,10 +60,13 @@ namespace sjtu {
 
         template<class U>
         Matrix(const Matrix<U> &o) {
-            size_Matrix = o.size_Matrix;
-            true_len=len = o.len;
+            std::pair<size_t, std::size_t> sz=o.size();
+            size_Matrix = sz;
+            true_len=len = sz.second*sz.first;
             Core = new T[len];
-            for (int i = 0; i < len; ++i) Core[i] =static_cast<T>(o.Core[i]);
+            for (int i = 0; i < sz.first; ++i)
+                for (int j=0;j<sz.second;++j)
+                    Core[i*sz.second+j] =static_cast<T>(o(i,j));
         }
 
         Matrix &operator=(const Matrix &o) {
@@ -78,12 +81,14 @@ namespace sjtu {
 
         template<class U>
         Matrix &operator=(const Matrix<U> &o) {
-            if (this==&o) return *this;
             delete [] Core;
-            true_len=len=o.len;
-            size_Matrix = o.size_Matrix;
+            std::pair<size_t, std::size_t> sz=o.size();
+            true_len=len=sz.first*sz.second;
+            size_Matrix = sz;
             Core=new T[len];
-            for (int i=0;i<len;++i) Core[i]=static_cast<T>(o.Core[i]);
+            for (int i=0;i<sz.first;++i)
+                for (int j=0;j<sz.second;++j)
+                    Core[i*sz.second+j]=static_cast<T>(o(i,j));
             return *this;
         }
 
@@ -191,7 +196,7 @@ namespace sjtu {
             res.size_Matrix={1,size_Matrix.second};
             res.true_len=res.len=size_Matrix.second;
             res.Core=new T [res.len];
-            for (int j=0;j<res.len;++j) res.Core[j]=i*size_Matrix.second+j;
+            for (int j=0;j<res.len;++j) res.Core[j]=Core[i*size_Matrix.second+j];
             return res;
         }
 
@@ -200,7 +205,7 @@ namespace sjtu {
             res.size_Matrix={size_Matrix.first,1};
             res.true_len=res.len=size_Matrix.first;
             res.Core=new T [res.len];
-            for (int j=0;j<res.len;++j) res.Core[j]=j*size_Matrix.second+i;
+            for (int j=0;j<res.len;++j) res.Core[j]=Core[j*size_Matrix.second+i];
             return res;
         }
 
@@ -208,17 +213,19 @@ namespace sjtu {
     public:
         template<class U>
         bool operator==(const Matrix<U> &o) const {
-            if (size_Matrix!=o.size_Matrix) return 0;
-            for (int i=0;i<len;++i)
-                if (Core[i]!=o.Core[i]) return 0;
+            if (size_Matrix!=o.size()) return 0;
+            for (int i=0;i<size_Matrix.first;++i)
+                for (int j=0;j<size_Matrix.second;++j)
+                    if (Core[i*size_Matrix.second+j]!=o(i,j)) return 0;
             return 1;
         }
 
         template<class U>
         bool operator!=(const Matrix<U> &o) const {
-            if (size_Matrix!=o.size_Matrix) return 1;
-            for (int i=0;i<len;++i)
-                if (Core[i]!=o.Core[i]) return 1;
+            if (size_Matrix!=o.size()) return 1;
+            for (int i=0;i<size_Matrix.first;++i)
+                for (int j=0;j<size_Matrix.second;++j)
+                if (Core[i*size_Matrix.second+j]!=o(i,j)) return 1;
             return 0;
         }
 
@@ -233,19 +240,25 @@ namespace sjtu {
 
         template<class U>
         Matrix &operator+=(const Matrix<U> &o) {
-            for (int i=0;i<len;++i) Core[i]+=static_cast<T>(o.Core[i]);
+            for (int i=0;i<size_Matrix.first;++i)
+                for (int j=0;j<size_Matrix.second;++j)
+                    Core[i*size_Matrix.second+j]+=static_cast<T>(o(i,j));
+//            for (int i=0;i<len;++i) Core[i]+=static_cast<T>(o.Core[i]);
             return *this;
         }
 
         template<class U>
         Matrix &operator-=(const Matrix<U> &o) {
-            for (int i=0;i<len;++i) Core[i]-=static_cast<T>(o.Core[i]);
+            for (int i=0;i<size_Matrix.first;++i)
+                for (int j=0;j<size_Matrix.second;++j)
+                    Core[i*size_Matrix.second+j]-=static_cast<T>(o(i,j));
+//            for (int i=0;i<len;++i) Core[i]-=static_cast<T>(o.Core[i]);
             return *this;
         }
 
         template<class U>
         Matrix &operator*=(const U &x) {
-            for (int i=0;i<len;++i) Core[i]+=static_cast<T>(x);
+            for (int i=0;i<len;++i) Core[i]*=static_cast<T>(x);
             return *this;
         }
 
@@ -277,68 +290,139 @@ namespace sjtu {
             iterator &operator=(const iterator &) = default;
 
         private:
-
-
+            T* ptr;
+            int now,len;
+            friend class Matrix;
         public:
             difference_type operator-(const iterator &o) {
-
+                return now-o.now;
             }
-
+            //0 <-> end
             iterator &operator+=(difference_type offset) {
-
+                int tmp=now+offset;
+                T* tmp_ptr;
+                if (tmp<0) tmp+=len+1;
+                if (tmp>len) tmp-=len+1;
+                tmp_ptr=ptr-now;
+                now=tmp;
+                ptr=tmp_ptr+now;
+                return *this;
             }
 
             iterator operator+(difference_type offset) const {
-
+                iterator res;
+                res.len=len;
+                res.ptr=ptr-now;
+                int tmp=now+offset;
+                if (tmp<0) tmp+=len+1;
+                if (tmp>len) tmp-=len+1;
+                res.now=tmp;
+                res.ptr=res.ptr+res.now;
+                return res;
             }
 
             iterator &operator-=(difference_type offset) {
-
+                int tmp=now-offset;
+                T* tmp_ptr;
+                if (tmp<0) tmp+=len+1;
+                if (tmp>len) tmp-=len+1;
+                tmp_ptr=ptr-now;
+                now=tmp;
+                ptr=tmp_ptr+now;
+                return *this;
             }
 
             iterator operator-(difference_type offset) const {
-
+                iterator res;
+                res.len=len;
+                res.ptr=ptr-now;
+                int tmp=now-offset;
+                if (tmp<0) tmp+=len+1;
+                if (tmp>len) tmp-=len+1;
+                res.now=tmp;
+                res.ptr=res.ptr+res.now;
+                return res;
             }
 
             iterator &operator++() {
-
+                ++ptr;
+                ++now;
+                if (now>len) {
+                    ptr-=now;
+                    now = 0;
+                }
+                return *this;
             }
 
             iterator operator++(int) {
-
+                iterator res;
+                res.len=len;
+                res.now=now;
+                res.ptr=ptr;
+                ++ptr;
+                ++now;
+                if (now>len) {
+                    ptr-=now;
+                    now = 0;
+                }
+                return res;
             }
 
             iterator &operator--() {
-
+                --ptr;
+                --now;
+                if (now<0) {
+                    ptr+=len+1;
+                    now = len;
+                }
+                return *this;
             }
 
             iterator operator--(int) {
-
+                iterator res;
+                res.len=len;
+                res.now=now;
+                res.ptr=ptr;
+                --ptr;
+                --now;
+                if (now<0) {
+                    ptr+=len+1;
+                    now = len;
+                }
+                return res;
             }
 
             reference operator*() const {
-
+                return *ptr;
             }
 
             pointer operator->() const {
-
+                return ptr;
             }
 
             bool operator==(const iterator &o) const {
-
+                return (ptr==o.ptr);
             }
 
             bool operator!=(const iterator &o) const {
-
+                return (ptr!=o.ptr);
             }
         };
 
         iterator begin() {
-
+            iterator res;
+            res.ptr=Core;
+            res.now=0;
+            res.len=len;
+            return res;
         }
 
         iterator end() {
-
+            iterator res;
+            res.ptr=Core+len;
+            res.now=len;
+            res.len=len;
+            return res;
         }
 
         std::pair<iterator, iterator> subMatrix(std::pair<size_t, size_t> l, std::pair<size_t, size_t> r) {

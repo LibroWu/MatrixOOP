@@ -4,7 +4,9 @@
 #include "matrix.hpp"
 
 using namespace sjtu;
-
+struct Int{
+    int num;
+};
 template <typename T>
 void print(Matrix<T> a){
     auto size_=a.size();
@@ -33,6 +35,8 @@ int main() {
 #endif
 #ifdef init_list
     Matrix<int> a={{1,2,3,4},{5,6,7,8},{9,10,11,12}};
+    Matrix<int> z=a.column(1);
+    print(z);
     print(a*3);
     print(a.tran());
     if (a==a) print(a-a);
@@ -40,6 +44,14 @@ int main() {
     print(a);
     a.resize(4,4,1);
     print(a);
+    Matrix<Int> b(2, 2,{3});
+    b(0, 0).num = 124;
+    if (b.begin()->num != 123)
+        std::cout<<"wa\n"<<b.begin()->num<<'\n';
+    Matrix<Int>::iterator it;
+    it=b.begin();
+    Int tmp=*++it;
+    std::cout<<tmp.num<<' '<<it->num;
 #endif
     return 0;
 }
