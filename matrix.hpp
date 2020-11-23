@@ -242,7 +242,7 @@ namespace sjtu {
         Matrix &operator+=(const Matrix<U> &o) {
             for (int i=0;i<size_Matrix.first;++i)
                 for (int j=0;j<size_Matrix.second;++j)
-                    Core[i*size_Matrix.second+j]+=static_cast<T>(o(i,j));
+                    Core[i*size_Matrix.second+j]+=o(i,j);
 //            for (int i=0;i<len;++i) Core[i]+=static_cast<T>(o.Core[i]);
             return *this;
         }
@@ -251,7 +251,7 @@ namespace sjtu {
         Matrix &operator-=(const Matrix<U> &o) {
             for (int i=0;i<size_Matrix.first;++i)
                 for (int j=0;j<size_Matrix.second;++j)
-                    Core[i*size_Matrix.second+j]-=static_cast<T>(o(i,j));
+                    Core[i*size_Matrix.second+j]-=o(i,j);
 //            for (int i=0;i<len;++i) Core[i]-=static_cast<T>(o.Core[i]);
             return *this;
         }

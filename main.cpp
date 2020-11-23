@@ -1,5 +1,6 @@
-//#define operator*
-#define init_list
+//#define operator
+//#define init_list
+#define emm
 #include <iostream>
 #include "matrix.hpp"
 
@@ -18,7 +19,21 @@ void print(Matrix<T> a){
 }
 
 int main() {
-#ifdef operator*
+#ifdef emm
+    std::initializer_list<std::initializer_list<int>> intIl = {{ 0, 1, 2, 3 },
+                                                               { 1, 2, 3, 4 },
+                                                               { 2, 3, 4, 5 }};
+    Matrix<int> a = intIl;
+    auto b = a;
+    b += a;
+
+    if (b != 2 * a)
+        std::cout<<"wa\n";
+    b-=a;
+    if (b != a)
+        std::cout<<"wa\n";
+#endif
+#ifdef operator
     int n,m,k;
     std::cin>>n>>m>>k;
     Matrix<int> a(n,m),b(m,k);
@@ -35,7 +50,10 @@ int main() {
 #endif
 #ifdef init_list
     Matrix<int> a={{1,2,3,4},{5,6,7,8},{9,10,11,12}};
-    Matrix<int> z=a.column(1);
+    auto z=a;
+    z+=a;
+    Matrix<int> y=2*a;
+    if (y!=2*a) std::cout<<"yes\n";
     print(z);
     print(a*3);
     print(a.tran());
