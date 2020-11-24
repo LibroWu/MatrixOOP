@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <utility>
 #include <iterator>
+#include <exception>
 
 using std::size_t;
 
@@ -241,6 +242,7 @@ namespace sjtu {
 
         template<class U>
         Matrix &operator+=(const Matrix<U> &o) {
+            if (size_Matrix!=o.size()) throw std::invalid_argument("+=");
             for (int i=0;i<size_Matrix.first;++i)
                 for (int j=0;j<size_Matrix.second;++j)
                     Core[i*size_Matrix.second+j]+=o(i,j);
@@ -250,6 +252,7 @@ namespace sjtu {
 
         template<class U>
         Matrix &operator-=(const Matrix<U> &o) {
+            if (size_Matrix!=o.size()) throw std::invalid_argument("-=");
             for (int i=0;i<size_Matrix.first;++i)
                 for (int j=0;j<size_Matrix.second;++j)
                     Core[i*size_Matrix.second+j]-=o(i,j);
@@ -457,6 +460,7 @@ namespace sjtu {
 
     template<class U, class V>
     auto operator*(const Matrix<U> &a, const Matrix<V> &b) {
+        if (a.size_Matrix.second!=b.size_Matrix.first) throw std::invalid_argument("Matrix*");
         std::pair<size_t,size_t> size_={a.size_Matrix.first,b.size_Matrix.second};
         Matrix<decltype(a.Core[0]*b.Core[0])> res(size_,0);
         for (int i=0;i<a.size_Matrix.first;++i)
@@ -468,6 +472,7 @@ namespace sjtu {
 
     template<class U, class V>
     auto operator+(const Matrix<U> &a, const Matrix<V> &b) {
+        if (a.size()!=b.size()) throw std::invalid_argument("Matrix+");
         std::pair<size_t,size_t> size_={a.size_Matrix.first,a.size_Matrix.second};
         Matrix<decltype(a.Core[0]+b.Core[0])> res(size_,0);
         for (int i=0;i<a.size_Matrix.first;++i)
@@ -478,6 +483,7 @@ namespace sjtu {
 
     template<class U, class V>
     auto operator-(const Matrix<U> &a, const Matrix<V> &b) {
+        if (a.size()!=b.size()) throw std::invalid_argument("Matrix-");
         std::pair<size_t,size_t> size_={a.size_Matrix.first,a.size_Matrix.second};
         Matrix<decltype(a.Core[0]-b.Core[0])> res(size_,0);
         for (int i=0;i<a.size_Matrix.first;++i)
