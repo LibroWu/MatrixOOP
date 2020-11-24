@@ -121,6 +121,7 @@ namespace sjtu {
             Core=new T [len];
             int i=-1;
             for (auto it_i=std::begin(il);it_i!=std::end(il);++it_i){
+                if (it_i->size()!=size_Matrix.second) throw std::invalid_argument("init_list");
                 for (auto it_j=std::begin(*it_i);it_j!=std::end(*it_i);++it_j){
                     Core[++i]=*it_j;
                 }
@@ -141,11 +142,9 @@ namespace sjtu {
                 size_Matrix={_n,_m};
             }else {
                 T* tmp=new T [_n*_m];
-                int cnt=-1;
-                for (int i=0;i<_n && i<size_Matrix.first;++i)
-                    for (int j=0;j<_m && j<size_Matrix.second;++j)
-                            tmp[++cnt]=Core[i*size_Matrix.second+j];
-                for (int i=cnt+1;i<_n*_m;++i) tmp[i]=_init;
+                for (int i=0;i<_n*_m;++i)
+                    if (i<len) tmp[i]=Core[i];
+                    else tmp[i]=_init;
                 T* _tmp=Core;
                 Core=tmp;
                 delete [] _tmp;
@@ -160,11 +159,9 @@ namespace sjtu {
                 size_Matrix={_n,_m};
             }else {
                 T* tmp=new T [_n*_m];
-                int cnt=-1;
-                for (int i=0;i<_n && i<size_Matrix.first;++i)
-                    for (int j=0;j<_m && j<size_Matrix.second;++j)
-                        tmp[++cnt]=Core[i*size_Matrix.second+j];
-                for (int i=cnt+1;i<_n*_m;++i) tmp[i]=_init;
+                for (int i=0;i<_n*_m;++i)
+                    if (i<len) tmp[i]=Core[i];
+                    else tmp[i]=_init;
                 T* _tmp=Core;
                 Core=tmp;
                 delete [] _tmp;
@@ -186,14 +183,17 @@ namespace sjtu {
 
     public:
         const T &operator()(size_t i, size_t j) const {
+            if (i<0 || j<0 || i>=size_Matrix.first || j>=size_Matrix.second) throw std::invalid_argument("()");
             return Core[i*size_Matrix.second+j];
         }
 
         T &operator()(size_t i, size_t j) {
+            if (i<0 || j<0 || i>=size_Matrix.first || j>=size_Matrix.second) throw std::invalid_argument("()");
             return Core[i*size_Matrix.second+j];
         }
 
         Matrix<T> row(size_t i) const {
+            if (i<0||i>=size_Matrix.first) throw std::invalid_argument("row");
             Matrix<T> res;
             res.size_Matrix={1,size_Matrix.second};
             res.true_len=res.len=size_Matrix.second;
@@ -203,6 +203,7 @@ namespace sjtu {
         }
 
         Matrix<T> column(size_t i) const {
+            if (i<0||i>=size_Matrix.second) throw std::invalid_argument("column");
             Matrix<T> res;
             res.size_Matrix={size_Matrix.first,1};
             res.true_len=res.len=size_Matrix.first;

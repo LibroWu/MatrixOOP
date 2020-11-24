@@ -24,6 +24,7 @@ int main() {
                                                                { 1, 2, 3, 4,5,6 },
                                                                { 2, 3, 4, 5,7,8 }};
     Matrix<int> a = intIl;
+    Matrix<int> c(3,3,3);
     print(a);
     a.resize(6,7);
     print(a);
@@ -35,6 +36,12 @@ int main() {
     b-=a;
     if (b != a)
         std::cout<<"wa\n";
+    try {
+        a+=c;
+    }
+    catch (...) {
+        std::cout<<"RE";
+    }
 #endif
 #ifdef operator
     int n,m,k;
