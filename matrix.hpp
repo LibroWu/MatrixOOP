@@ -16,6 +16,7 @@ namespace sjtu {
     private:
         // your private member variables here.
         const std::pair<size_t, std::size_t> init_size={0,0};
+        bool temp=false;
         std::pair<size_t, std::size_t> size_Matrix=init_size;
         T *Core = nullptr;
         size_t len = 0,true_len=0;
@@ -290,12 +291,18 @@ namespace sjtu {
 
             iterator() = default;
 
+            ~iterator(){
+                if (ptr_Matrix!= nullptr&&ptr_Matrix->temp)
+                    delete ptr_Matrix;
+            }
+
             iterator(const iterator &) = default;
 
             iterator &operator=(const iterator &) = default;
 
         private:
             T* ptr;
+            Matrix<T> *ptr_Matrix = nullptr;
             int now,len;
             friend class Matrix;
         public:
@@ -416,6 +423,7 @@ namespace sjtu {
 
         iterator begin() {
             iterator res;
+            res.ptr_Matrix=this;
             res.ptr=Core;
             res.now=0;
             res.len=len;
@@ -424,6 +432,7 @@ namespace sjtu {
 
         iterator end() {
             iterator res;
+            res.ptr_Matrix=this;
             res.ptr=Core+len;
             res.now=len;
             res.len=len;
@@ -431,18 +440,17 @@ namespace sjtu {
         }
 
         std::pair<iterator, iterator> subMatrix(std::pair<size_t, size_t> l, std::pair<size_t, size_t> r) {
-            Matrix<T> res;
+            Matrix<T> *res;
+            res=new Matrix<T>;
             int row=r.first-l.first+1,col=r.second-l.second+1;
-            res.size_Matrix={row,col};
-            res.len=row*col;
-            res.Core=new T [res.len];
+            res->size_Matrix={row,col};
+            res->len=row*col;
+            res->Core=new T [res->len];
             for (int i=0;i<row;++i)
                 for (int j=0;j<col;++j)
-                    res.Core[i*col+j]=Core[(i+l.first)*size_Matrix.second+j+l.second];
-            Matrix<T>*ptr;
-            ptr=new Matrix<T>;
-            *ptr=res;
-            return {ptr->begin(),ptr->end()};
+                    res->Core[i*col+j]=Core[(i+l.first)*size_Matrix.second+j+l.second];
+            res->temp=true;
+            return {res->begin(),res->end()};
         }
     };
 
