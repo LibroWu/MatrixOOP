@@ -431,7 +431,18 @@ namespace sjtu {
         }
 
         std::pair<iterator, iterator> subMatrix(std::pair<size_t, size_t> l, std::pair<size_t, size_t> r) {
-
+            Matrix<T> res;
+            int row=r.first-l.first+1,col=r.second-l.second+1;
+            res.size_Matrix={row,col};
+            res.len=row*col;
+            res.Core=new T [res.len];
+            for (int i=0;i<row;++i)
+                for (int j=0;j<col;++j)
+                    res.Core[i*col+j]=Core[(i+l.first)*size_Matrix.second+j+l.second];
+            Matrix<T>*ptr;
+            ptr=new Matrix<T>;
+            *ptr=res;
+            return {ptr->begin(),ptr->end()};
         }
     };
 
