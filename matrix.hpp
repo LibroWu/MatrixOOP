@@ -109,7 +109,8 @@ namespace sjtu {
         }
 
         ~Matrix() {
-            delete[] Core;
+            if (Core!= nullptr)
+                delete[] Core;
         }
 
         Matrix(std::initializer_list<std::initializer_list<T>> il) {

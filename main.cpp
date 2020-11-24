@@ -20,10 +20,13 @@ void print(Matrix<T> a){
 
 int main() {
 #ifdef emm
-    std::initializer_list<std::initializer_list<int>> intIl = {{ 0, 1, 2, 3 },
-                                                               { 1, 2, 3, 4 },
-                                                               { 2, 3, 4, 5 }};
+    std::initializer_list<std::initializer_list<int>> intIl = {{ 0, 1, 2, 3,4,5 },
+                                                               { 1, 2, 3, 4,5,6 },
+                                                               { 2, 3, 4, 5,7,8 }};
     Matrix<int> a = intIl;
+    print(a);
+    a.resize(6,7);
+    print(a);
     auto b = a;
     b += a;
 
