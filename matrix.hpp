@@ -291,116 +291,68 @@ namespace sjtu {
 
             iterator() = default;
 
-            ~iterator(){
-                if (ptr_Matrix!= nullptr&&ptr_Matrix->temp)
-                    delete ptr_Matrix;
-            }
-
             iterator(const iterator &) = default;
 
             iterator &operator=(const iterator &) = default;
 
         private:
             T* ptr;
-            Matrix<T> *ptr_Matrix = nullptr;
-            int now,len;
+            std::pair<size_type,size_type> now,l_up,r_down,size_mat,size_sub;
             friend class Matrix;
         public:
             difference_type operator-(const iterator &o) {
-                return now-o.now;
+                if (o.l_up!=l_up || o.r_down!=r_down) throw std::invalid_argument("operator-");
+                return (((now.first-l_up.first)*size_sub.second+(now.second-l_up.second))-((o.now.first-o.l_up.first)*o.size_sub.second+(o.now.second-o.l_up.second)));
             }
-            //0 <-> end
             iterator &operator+=(difference_type offset) {
-                int tmp=now+offset;
-                T* tmp_ptr;
-                if (tmp<0) tmp+=len+1;
-                if (tmp>len) tmp-=len+1;
-                tmp_ptr=ptr-now;
-                now=tmp;
-                ptr=tmp_ptr+now;
+                ptr-=(now.first*size_mat.second+now.second);
+                int stat=((now.first-l_up.first)*size_sub.second+(now.second-l_up.second))+offset;
+                now.first=l_up.first+stat/size_sub.second;
+                now.second=l_up.second+stat%size_sub.second;
+                ptr+=(now.first*size_mat.second+now.second);
                 return *this;
             }
 
             iterator operator+(difference_type offset) const {
-                iterator res;
-                res.len=len;
-                res.ptr=ptr-now;
-                int tmp=now+offset;
-                if (tmp<0) tmp+=len+1;
-                if (tmp>len) tmp-=len+1;
-                res.now=tmp;
-                res.ptr=res.ptr+res.now;
+                iterator res=*this;
+                res+=offset;
                 return res;
             }
 
             iterator &operator-=(difference_type offset) {
-                int tmp=now-offset;
-                T* tmp_ptr;
-                if (tmp<0) tmp+=len+1;
-                if (tmp>len) tmp-=len+1;
-                tmp_ptr=ptr-now;
-                now=tmp;
-                ptr=tmp_ptr+now;
+                ptr-=(now.first*size_mat.second+now.second);
+                int stat=((now.first-l_up.first)*size_sub.second+(now.second-l_up.second))-offset;
+                now.first=l_up.first+stat/size_mat.second;
+                now.second=l_up.second+stat%size_mat.second;
+                ptr+=(now.first*size_mat.second+now.second);
                 return *this;
             }
 
             iterator operator-(difference_type offset) const {
-                iterator res;
-                res.len=len;
-                res.ptr=ptr-now;
-                int tmp=now-offset;
-                if (tmp<0) tmp+=len+1;
-                if (tmp>len) tmp-=len+1;
-                res.now=tmp;
-                res.ptr=res.ptr+res.now;
+                iterator res=*this;
+                res-=offset;
                 return res;
             }
 
             iterator &operator++() {
-                ++ptr;
-                ++now;
-                if (now>len) {
-                    ptr-=now;
-                    now = 0;
-                }
+                *this+=1;
                 return *this;
             }
 
             iterator operator++(int) {
-                iterator res;
-                res.len=len;
-                res.now=now;
-                res.ptr=ptr;
-                ++ptr;
-                ++now;
-                if (now>len) {
-                    ptr-=now;
-                    now = 0;
-                }
+                iterator res=*this;
+                *this+=1;
                 return res;
             }
 
             iterator &operator--() {
-                --ptr;
-                --now;
-                if (now<0) {
-                    ptr+=len+1;
-                    now = len;
-                }
+                *this-=1;
                 return *this;
             }
 
             iterator operator--(int) {
-                iterator res;
-                res.len=len;
-                res.now=now;
-                res.ptr=ptr;
-                --ptr;
-                --now;
-                if (now<0) {
-                    ptr+=len+1;
-                    now = len;
-                }
+                iterator res=*this;
+                *this-=1;
                 return res;
             }
 
@@ -423,34 +375,34 @@ namespace sjtu {
 
         iterator begin() {
             iterator res;
-            res.ptr_Matrix=this;
+            res.now=res.l_up={0,0};
+            res.r_down={size_Matrix.first-1,size_Matrix.second-1};
+            res.size_sub=res.size_mat=size_Matrix;
             res.ptr=Core;
-            res.now=0;
-            res.len=len;
             return res;
         }
 
         iterator end() {
             iterator res;
-            res.ptr_Matrix=this;
+            res.l_up={0,0};
+            res.r_down={size_Matrix.first-1,size_Matrix.second-1};
+            res.now={size_Matrix.first,0};
+            res.size_sub=res.size_mat=size_Matrix;
             res.ptr=Core+len;
-            res.now=len;
-            res.len=len;
             return res;
         }
 
         std::pair<iterator, iterator> subMatrix(std::pair<size_t, size_t> l, std::pair<size_t, size_t> r) {
-            Matrix<T> *res;
-            res=new Matrix<T>;
-            int row=r.first-l.first+1,col=r.second-l.second+1;
-            res->size_Matrix={row,col};
-            res->len=row*col;
-            res->Core=new T [res->len];
-            for (int i=0;i<row;++i)
-                for (int j=0;j<col;++j)
-                    res->Core[i*col+j]=Core[(i+l.first)*size_Matrix.second+j+l.second];
-            res->temp=true;
-            return {res->begin(),res->end()};
+            iterator ll,rr;
+            ll.size_mat=rr.size_mat=size_Matrix;
+            ll.size_sub=rr.size_sub={r.first-l.first+1,r.second-l.second+1};
+            ll.l_up=rr.l_up=l;
+            rr.r_down=rr.r_down=r;
+            ll.now=l;
+            rr.now=r;
+            ll.ptr=Core+l.first*size_Matrix.second+l.second;
+            rr.ptr=Core+r.first*size_Matrix.second+r.second;
+            return {ll,++rr};
         }
     };
 
