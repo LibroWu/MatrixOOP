@@ -103,6 +103,7 @@ namespace sjtu {
 
         Matrix &operator=(Matrix &&o) noexcept {
             if (this==&o) return *this;
+            delete [] Core;
             Core = o.Core;
             size_Matrix = o.size_Matrix;
             true_len=len = o.len;
@@ -111,7 +112,7 @@ namespace sjtu {
         }
 
         ~Matrix() {
-            if (Core!= nullptr)
+            if (Core != nullptr)
                 delete[] Core;
         }
 
@@ -122,7 +123,10 @@ namespace sjtu {
             Core=new T [len];
             int i=-1;
             for (auto it_i=std::begin(il);it_i!=std::end(il);++it_i){
-                if (it_i->size()!=size_Matrix.second) throw std::invalid_argument("init_list");
+                if (it_i->size()!=size_Matrix.second) {
+                    delete [] Core;
+                    throw std::invalid_argument("init_list");
+                }
                 for (auto it_j=std::begin(*it_i);it_j!=std::end(*it_i);++it_j){
                     Core[++i]=*it_j;
                 }
@@ -176,6 +180,7 @@ namespace sjtu {
         };
 
         void clear() {
+            if (Core != nullptr)
             delete[] Core;
             Core = nullptr;
             true_len=len = 0;
@@ -355,6 +360,7 @@ namespace sjtu {
                 *this-=1;
                 return res;
             }
+
 
             reference operator*() const {
                 return *ptr;
